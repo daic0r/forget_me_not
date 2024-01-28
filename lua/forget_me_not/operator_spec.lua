@@ -1,0 +1,26 @@
+describe("Operator:", function()
+   local Operator = require("forget_me_not.operator")
+
+   it("construct operator", function()
+      local op = Operator.new()
+      assert.are.equal(op.operator, "")
+      op = Operator.new("d")
+      assert.are.equal(op.operator, "d")
+      op = Operator.new("g~")
+      assert.are.equal(op.operator, "g~")
+      op = Operator.new("x")
+      assert.are.equal(op.operator, "")
+   end)
+
+   it("parse operator", function()
+      local op = Operator.new()
+      local str = "d"
+      local remain = op:parse(str)
+      assert.are.equal(op.operator, "d")
+      assert.are.equal(remain, "")
+      str = "g~j"
+      remain = op:parse(str)
+      assert.are.equal(op.operator, "g~")
+      assert.are.equal(remain, "j")
+   end)
+end)
