@@ -1,4 +1,6 @@
-local M = {}
+local M = {
+   tips = {}
+}
 
 local utils = require("forget_me_not.utils")
 local motions = utils.get_motions()
@@ -7,8 +9,17 @@ local esc =  vim.api.nvim_replace_termcodes("<Esc>", true, false, true)
 
 local key_sequence = ""
 
+local EXPECT = {
+   CountOperator = 0,
+   Operator = 1,
+   CountMotion = 2,
+   Motion = 3
+}
+
+local current = EXPECT.CountOperator
+
 function M:register_tip(keys, message, timeout)
-   self.tips = self.tips or {}
+   --self.tips = self.tips or {}
    self.tips[keys] = { msg = message, timeout = timeout or 1000 }
 end
 
@@ -56,9 +67,9 @@ function M:setup()
          end 
       end
    end, ns)
-
-   self.tips = {}
-   -- M:register_tip("jk", "Exit insert mode", 2000)
 end
+
+print("Loaded forget_me_not")
+-- M:register_tip("d<vert>p", "Exit insert mode", 2000)
 
 return M

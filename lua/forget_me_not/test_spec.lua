@@ -1,0 +1,8 @@
+describe("Count", function()
+  it("construct", function()
+    local cnt = require("forget_me_not.count").new()
+    assert.are.equal(cnt.value, 1)
+    cnt = require("forget_me_not.count").new(15)
+    assert.are.equal(cnt.value, 15)
+  end)
+end)
