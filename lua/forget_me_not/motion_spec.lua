@@ -1,14 +1,26 @@
-describe("Motion tests", function()
+describe("Motion:", function()
    local Motion = require("forget_me_not.motion")
+
+   it("construct motion", function()
+      local m = Motion.new()
+      assert.are.equal(m.motion, "")
+      assert.are.equal(m.category, nil)
+      m = Motion.new("j")
+      assert.are.equal(m.motion, "j")
+      assert.are.equal(m.category, Motion.categories.VERTICAL)
+   end)
+
    it("parse a motion", function()
       local str = "j"
       local m = Motion.new()
-      m:parse(str)
+      local remain = m:parse(str)
       assert.are.equal(m.motion, "j")
       assert.are.equal(m.category, Motion.categories.VERTICAL)
-      str = "f/"
-      m:parse(str)
+      assert.are.equal(remain, "")
+      str = "f/d"
+      remain = m:parse(str)
       assert.are.equal(m.motion, "f/")
       assert.are.equal(m.category, Motion.categories.HORIZONTAL)
+      assert.are.equal(remain, "d")
    end)
 end)

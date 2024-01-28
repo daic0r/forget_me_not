@@ -55,31 +55,42 @@ function Motion.new(motion)
       motion = "",
       category = nil,
    }
+   setmetatable(ret, {
+      __index = Motion,
+   })
    if motion ~= nil then
-      ret.motion = motion
+      ret:fill_motion(motion)
    end
-   return setmetatable(ret, Motion)
+   return ret
+end
+
+function Motion:fill_motion(keys)
+   if Motion.vertical_motions[keys] then
+      self.motion = keys
+      self.category = Motion.categories.VERTICAL
+      return true
+   elseif Motion.horizontal_motions[keys] then
+      self.motion = keys
+      self.category = Motion.categories.HORIZONTAL
+      return true
+   end
+   return false
 end
 
 -- @param str: string
--- @return true if a motion was parsed, false otherwise
+-- @return bool, string: true if str is a valid motion, false otherwise, and the
+-- remaining string
 function Motion:parse(str)
    if #str == 0 then
-      return false
+      return nil
    end
    for i = math.min(2, #str), 1, -1 do
       local keys = string.sub(str, 1, i)
-      if Motion.vertical_motions[keys] then
-         self.motion = keys
-         self.category = Motion.categories.VERTICAL
-         return true
-      elseif Motion.horizontal_motions[keys] then
-         self.motion = keys
-         self.category = Motion.categories.HORIZONTAL
-         return true
+      if self:fill_motion(keys) then
+         return string.sub(str, i + 1)
       end
    end
-   return false
+   return nil
 end
 
 return Motion
