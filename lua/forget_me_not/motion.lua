@@ -28,14 +28,13 @@ local Motion = {
       ["t."] = "FIND_CHAR_TILL_FORWARD",
       ["T."] = "FIND_CHAR_TILL_BACKWARD",
    },
-   motion = "",
-   category = nil,
    categories = {
       VERTICAL = 0,
       HORIZONTAL = 1
    }
 }
 
+-- Pattern matching for motions
 local motion_mt = {
    __index = function(table, key)
       for keys, name in pairs(table) do
@@ -52,13 +51,14 @@ setmetatable(Motion.horizontal_motions, motion_mt)
 -- @param motion: string
 -- @return Motion
 function Motion.new(motion)
-   local ret = {}
+   local ret = {
+      motion = "",
+      category = nil,
+   }
    if motion ~= nil then
       ret.motion = motion
    end
-   return setmetatable(ret, {
-      __index = Motion
-   })
+   return setmetatable(ret, Motion)
 end
 
 -- @param str: string
@@ -66,35 +66,15 @@ end
 function Motion:parse(str)
    if #str == 0 then
       return false
-   elseif #str == 1 then
-      local first = string.sub(str, 1, 1)
-      if Motion.vertical_motions[first] then
-         self.motion = first
+   end
+   for i = math.min(2, #str), 1, -1 do
+      local keys = string.sub(str, 1, i)
+      if Motion.vertical_motions[keys] then
+         self.motion = keys
          self.category = Motion.categories.VERTICAL
          return true
-      elseif Motion.horizontal_motions[first] then
-         self.motion = first
-         self.category = Motion.categories.HORIZONTAL
-         return true
-      end
-   else
-      local first_two = string.sub(str, 1, 2)
-      local first = string.sub(str, 1, 1)
-      if Motion.vertical_motions[first_two] then
-         self.motion = first_two
-         self.category = Motion.categories.VERTICAL
-         return true
-      elseif Motion.vertical_motions[first] then
-         self.motion = first
-         self.category = Motion.categories.VERTICAL
-         return true
-      end
-      if Motion.horizontal_motions[first_two] then
-         self.motion = first_two
-         self.category = Motion.categories.HORIZONTAL
-         return true
-      elseif Motion.vertical_motions[first] then
-         self.motion = first
+      elseif Motion.horizontal_motions[keys] then
+         self.motion = keys
          self.category = Motion.categories.HORIZONTAL
          return true
       end
