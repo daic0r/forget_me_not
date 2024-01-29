@@ -20,7 +20,11 @@ local Operator = {
    operators = {
       ["c"] = "CHANGE",
       ["d"] = "DELETE",
+      ["dd"] = "DELETE_LINEWISE",
+      ["x"] = "DELETE_CHARACTER",
       ["y"] = "YANK",
+      ["yy"] = "YANK_LINEWISE",
+      ["r."] = "REPLACE_CHARACTER",
       ["~"] = "SWAP_CASE",
       ["g~"] = "SWAP_CASE_G",
       ["gu"] = "MAKE_LOWER_CASE",
@@ -37,15 +41,32 @@ local Operator = {
    }
 }
 
-function Operator.new(operator)
+local operators_metatable = {
+   __index = function(table, key)
+      for keys, name in pairs(table) do
+         if string.match(key, "^" .. keys) then
+            return name
+         end
+      end
+      return nil
+   end,
+}
+setmetatable(Operator.operators, operators_metatable)
+
+Operator.metatable = {
+   __index = Operator,
+   __eq = function(lhs, rhs)
+      return lhs.operator == rhs.operator
+   end,
+}
+
+function Operator.new(op)
    local ret = {
       operator = "",
    }
-   setmetatable(ret, {
-      __index = Operator,
-   })
-   if operator ~= nil and Operator.operators[operator] then
-      ret.operator = operator
+   setmetatable(ret, Operator.metatable)
+   if op ~= nil and Operator.operators[op] then
+      ret.operator = op
    end
    return ret
 end

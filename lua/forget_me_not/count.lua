@@ -1,5 +1,12 @@
 local Count = {}
 
+Count.metatable = {
+   __index = Count,
+   __eq = function(lhs, rhs)
+      return lhs.value == rhs.value
+   end,
+}
+
 function Count.new(val)
    local ret = {
       value = 1
@@ -7,19 +14,17 @@ function Count.new(val)
    if val ~= nil then
       ret.value = val
    end
-   return setmetatable(ret, {
-      __index = Count,
-   })
+   return setmetatable(ret, Count.metatable)
 end
 
 -- @param str: string to parse
 function Count:parse(str)
    if #str == 0 then
-      return nil
+      return str
    end
    local match = string.match(str, "^(%d+)")
    if not match then
-      return nil
+      return str
    end
    local val = tonumber(match)
    self.value = val

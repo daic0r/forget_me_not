@@ -14,6 +14,7 @@ local Motion = {
       ["l"] = "RIGHT",
       ["w"] = "WORD",
       ["e"] = "WORD_END",
+      ["E"] = "CAPITAL_WORD_END",
       ["b"] = "WORD_START",
       ["W"] = "CAPITAL_WORD_FORWARD",
       ["B"] = "CAPITAL_WORD_BACKWARD",
@@ -31,7 +32,14 @@ local Motion = {
    categories = {
       VERTICAL = 0,
       HORIZONTAL = 1
-   }
+   },
+}
+
+Motion.metatable = {
+   __index = Motion,
+   __eq = function(lhs, rhs)
+      return lhs.motion == rhs.motion and lhs.category == rhs.category
+   end,
 }
 
 -- Pattern matching for motions
@@ -43,7 +51,7 @@ local motion_mt = {
          end
       end
       return nil
-   end
+   end,
 }
 setmetatable(Motion.vertical_motions, motion_mt)
 setmetatable(Motion.horizontal_motions, motion_mt)
@@ -55,9 +63,7 @@ function Motion.new(motion)
       motion = "",
       category = nil,
    }
-   setmetatable(ret, {
-      __index = Motion,
-   })
+   setmetatable(ret, Motion.metatable)
    if motion ~= nil then
       ret:fill_motion(motion)
    end
