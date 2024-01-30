@@ -17,6 +17,9 @@ local Operator = {
    |zf|	zf	define a fold
    |g@|	g@	call function set with the 'operatorfunc' option
    --]]
+
+   -- #TODO: check if dd and yy should stay here or if the second
+   -- d and y should be made a motion
    operators = {
       ["c"] = "CHANGE",
       ["d"] = "DELETE",
@@ -33,31 +36,36 @@ local Operator = {
       ["="] = "FILTER_THROUGH_EQUALPRG",
       ["gq"] = "TEXT_FORMATTING",
       ["gw"] = "TEXT_FORMATTING_NO_CURSOR_MOVEMENT",
-      ["g?"] = "ROT13_ENCODING",
+      ["g%?"] = "ROT13_ENCODING",
       [">"] = "SHIFT_RIGHT",
       ["<"] = "SHIFT_LEFT",
       ["zf"] = "DEFINE_A_FOLD",
-      ["g@"] = "CALL_FUNCTION",
+      ["g%@"] = "CALL_FUNCTION",
    }
 }
 
-local operators_metatable = {
-   __index = function(table, key)
-      for keys, name in pairs(table) do
-         if string.match(key, "^" .. keys) then
-            return name
-         end
-      end
-      return nil
-   end,
-}
-setmetatable(Operator.operators, operators_metatable)
+-- local operators_metatable = {
+--    __index = function(table, key)
+--       print("INDEXING " .. key)
+--       for keys, name in pairs(table) do
+--          if string.match(key, "^" .. keys) then
+--             print("Matched " .. key .. " to " .. keys)
+--             return keys
+--          end
+--       end
+--       return nil
+--    end,
+-- }
+-- setmetatable(Operator.operators, operators_metatable)
 
 Operator.metatable = {
    __index = Operator,
    __eq = function(lhs, rhs)
       return lhs.operator == rhs.operator
    end,
+   __tostring = function(self)
+      return self.operator
+   end
 }
 
 function Operator.new(op)
@@ -71,15 +79,26 @@ function Operator.new(op)
    return ret
 end
 
+function Operator.match_operator(str)
+   for keys, name in pairs(Operator.operators) do
+      local match = string.match(str, "^" .. keys)
+      if match then
+         return match
+      end
+   end
+   return nil
+end
+
 function Operator:parse(str)
    if #str == 0 then
       return nil
    end
    for i = math.min(2, #str), 1, -1 do
       local keys = string.sub(str, 1, i)
-      if Operator.operators[keys] then
-         self.operator = keys
-         return string.sub(str, i + 1)
+      local matched_key = Operator.match_operator(keys)
+      if matched_key then
+         self.operator = matched_key
+         return string.sub(str, #matched_key + 1)
       end
    end
    return nil

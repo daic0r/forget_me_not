@@ -5,6 +5,9 @@ Count.metatable = {
    __eq = function(lhs, rhs)
       return lhs.value == rhs.value
    end,
+   __tostring = function(self)
+      return tostring(self.value)
+   end
 }
 
 function Count.new(val)

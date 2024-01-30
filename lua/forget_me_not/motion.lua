@@ -40,21 +40,24 @@ Motion.metatable = {
    __eq = function(lhs, rhs)
       return lhs.motion == rhs.motion and lhs.category == rhs.category
    end,
+   __tostring = function(self)
+      return self.motion
+   end,
 }
 
 -- Pattern matching for motions
-local motion_mt = {
-   __index = function(table, key)
-      for keys, name in pairs(table) do
-         if string.match(key, "^" .. keys) then
-            return name
-         end
-      end
-      return nil
-   end,
-}
-setmetatable(Motion.vertical_motions, motion_mt)
-setmetatable(Motion.horizontal_motions, motion_mt)
+-- local motion_mt = {
+--    __index = function(table, key)
+--       for keys, name in pairs(table) do
+--          if string.match(keys, "^" .. key) then
+--             return name
+--          end
+--       end
+--       return nil
+--    end,
+-- }
+-- setmetatable(Motion.vertical_motions, motion_mt)
+-- setmetatable(Motion.horizontal_motions, motion_mt)
 
 -- @param motion: string
 -- @return Motion
@@ -70,14 +73,27 @@ function Motion.new(motion)
    return ret
 end
 
+function Motion.match_motion(str)
+   for keys, _ in pairs(Motion.vertical_motions) do
+      local match = string.match(str, "^" .. keys)
+      if match then
+         return match, Motion.categories.VERTICAL
+      end
+   end
+   for keys, _ in pairs(Motion.horizontal_motions) do
+      local match = string.match(str, "^" .. keys)
+      if match then
+         return match, Motion.categories.HORIZONTAL
+      end
+   end
+   return nil, nil
+end
+
 function Motion:fill_motion(keys)
-   if Motion.vertical_motions[keys] then
-      self.motion = keys
-      self.category = Motion.categories.VERTICAL
-      return true
-   elseif Motion.horizontal_motions[keys] then
-      self.motion = keys
-      self.category = Motion.categories.HORIZONTAL
+   local match, kind = Motion.match_motion(keys)
+   if match then
+      self.motion = match
+      self.category = kind
       return true
    end
    return false
