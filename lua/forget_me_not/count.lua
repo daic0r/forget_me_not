@@ -6,13 +6,13 @@ Count.metatable = {
       return lhs.value == rhs.value
    end,
    __tostring = function(self)
-      return tostring(self.value)
+      return self:is_valid() and tostring(self.value) or ""
    end
 }
 
 function Count.new(val)
    local ret = {
-      value = 1
+      value = nil
    }
    if val ~= nil then
       ret.value = val
@@ -32,6 +32,10 @@ function Count:parse(str)
    local val = tonumber(match)
    self.value = val
    return string.sub(str, #match + 1)
+end
+
+function Count:is_valid()
+   return self.value ~= nil
 end
 
 return Count

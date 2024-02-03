@@ -41,7 +41,7 @@ Motion.metatable = {
       return lhs.motion == rhs.motion and lhs.category == rhs.category
    end,
    __tostring = function(self)
-      return self.motion
+      return self:is_valid() and self.motion or ""
    end,
 }
 
@@ -63,7 +63,7 @@ Motion.metatable = {
 -- @return Motion
 function Motion.new(motion)
    local ret = {
-      motion = "",
+      motion = nil,
       category = nil,
    }
    setmetatable(ret, Motion.metatable)
@@ -113,6 +113,10 @@ function Motion:parse(str)
       end
    end
    return nil
+end
+
+function Motion:is_valid()
+   return self.motion ~= nil
 end
 
 return Motion

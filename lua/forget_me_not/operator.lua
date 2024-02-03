@@ -64,13 +64,13 @@ Operator.metatable = {
       return lhs.operator == rhs.operator
    end,
    __tostring = function(self)
-      return self.operator
+      return self:is_valid() and self.operator or ""
    end
 }
 
 function Operator.new(op)
    local ret = {
-      operator = "",
+      operator = nil
    }
    setmetatable(ret, Operator.metatable)
    if op ~= nil and Operator.operators[op] then
@@ -91,7 +91,7 @@ end
 
 function Operator:parse(str)
    if #str == 0 then
-      return nil
+      return str
    end
    for i = math.min(2, #str), 1, -1 do
       local keys = string.sub(str, 1, i)
@@ -101,7 +101,11 @@ function Operator:parse(str)
          return string.sub(str, #matched_key + 1)
       end
    end
-   return nil
+   return str
+end
+
+function Operator:is_valid()
+   return self.operator ~= nil
 end
 
 return Operator
