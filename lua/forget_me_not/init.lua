@@ -2,9 +2,14 @@ local M = {
    tips = {}
 }
 
+local Command = require("forget_me_not.command")
+
 local esc = vim.api.nvim_replace_termcodes("<Esc>", true, false, true)
 
 local key_sequence = ""
+local parse_timer = nil
+local parsed_commands = {}
+local concatted_keys = ""
 
 local EXPECT = {
    CountOperator = 0,
@@ -49,24 +54,43 @@ function M:setup()
       end))
    end
 
+   parse_timer = vim.uv.new_timer()
+
    vim.on_key(function(key)
       key_sequence = key_sequence .. key
+      parse_timer:start(1000, 0, function()
+         local cmd = Command.new()
+         print("Parsing: " .. key_sequence)
+         key_sequence = cmd:parse(key_sequence)
+         if cmd:is_valid() then
+            table.insert(parsed_commands, cmd)
+            concatted_keys = concatted_keys .. tostring(cmd)
+            print("Parsed command: " .. tostring(cmd))
+         else
+            print("Invalid command: " .. tostring(cmd))
+            key_sequence = ""
+         end
+      end)
       if key == esc then
          print("Escape")
          key_sequence = ""
+         parsed_commands = {}
+         concatted_keys = ""
          return nil
       end
 
       for keys, msg in pairs(self.tips) do
-         if string.find(key_sequence, keys) then
+         if string.find(key_sequence, "^" .. keys) then
             show_tip(msg)
             key_sequence = ""
+            parsed_commands = {}
+            concatted_keys = ""
          end
       end
    end, ns)
 end
 
 print("Loaded forget_me_not")
--- M:register_tip("d<vert>p", "Exit insert mode", 2000)
+M:register_tip("yiw", "Exit insert mode", 2000)
 
 return M

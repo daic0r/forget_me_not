@@ -55,8 +55,12 @@ function Command:parse(str)
    end
    --print("After motion: " .. str .. ", motion: " .. tostring(motion))
    self.count_op, self.operator, self.count_motion, self.motion = cnt1, op, cnt2, motion
-   print("Command: " .. tostring(self))
+   --print("Command: " .. tostring(self))
    return str
+end
+
+function Command:is_valid()
+   return self.count_motion:is_valid() and self.motion:is_valid()
 end
 
 return Command

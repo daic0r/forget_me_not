@@ -6,7 +6,7 @@ Count.metatable = {
       return lhs.value == rhs.value
    end,
    __tostring = function(self)
-      return self:is_valid() and tostring(self.value) or ""
+      return (self:is_valid() and self.value > 1)  and tostring(self.value) or ""
    end
 }
 

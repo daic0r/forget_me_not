@@ -13,6 +13,7 @@ local Motion = {
       ["h"] = "LEFT",
       ["l"] = "RIGHT",
       ["w"] = "WORD",
+      ["p"] = "PARAGRAPH",
       ["e"] = "WORD_END",
       ["E"] = "CAPITAL_WORD_END",
       ["b"] = "WORD_START",
@@ -29,9 +30,44 @@ local Motion = {
       ["t."] = "FIND_CHAR_TILL_FORWARD",
       ["T."] = "FIND_CHAR_TILL_BACKWARD",
    },
+   text_objects = {
+      ["iw"] = "INNER_WORD",
+      ["aw"] = "AROUND_WORD",
+      ["iW"] = "INNER_CAPITAL_WORD",
+      ["aW"] = "AROUND_CAPITAL_WORD",
+      ["ip"] = "INNER_PARAGRAPH",
+      ["ap"] = "AROUND_PARAGRAPH",
+      ["is"] = "INNER_SENTENCE",
+      ["as"] = "AROUND_SENTENCE",
+      ["i%["] = "INNER_BRACKET",
+      ["a%["] = "AROUND_BRACKET",
+      ["i%]"] = "INNER_BRACKET",
+      ["a%]"] = "AROUND_BRACKET",
+      ["iB"] = "INNER_BRACE",
+      ["aB"] = "AROUND_BRACE",
+      ["i%("] = "INNER_PARENTHESIS",
+      ["a%("] = "AROUND_PARENTHESIS",
+      ["i%)"] = "INNER_PARENTHESIS",
+      ["a%)"] = "AROUND_PARENTHESIS",
+      ["i%{"] = "INNER_BRACE",
+      ["a%{"] = "AROUND_BRACE",
+      ["i%}"] = "INNER_BRACE",
+      ["a%}"] = "AROUND_BRACE",
+      ["i<"] = "INNER_TAG",
+      ["a<"] = "AROUND_TAG",
+      ["i>"] = "INNER_TAG",
+      ["a>"] = "AROUND_TAG",
+      ["i'"] = "INNER_SINGLE_QUOTE",
+      ["a'"] = "AROUND_SINGLE_QUOTE",
+      ["i%\""] = "INNER_DOUBLE_QUOTE",
+      ["a%\""] = "AROUND_DOUBLE_QUOTE",
+      ["i%`"] = "INNER_BACKTICK",
+      ["a%`"] = "AROUND_BACKTICK",
+   },
    categories = {
       VERTICAL = 0,
-      HORIZONTAL = 1
+      HORIZONTAL = 1,
+      TEXT_OBJECT = 2,
    },
 }
 
@@ -86,6 +122,12 @@ function Motion.match_motion(str)
          return match, Motion.categories.HORIZONTAL
       end
    end
+   for keys, _ in pairs(Motion.text_objects) do
+      local match = string.match(str, "^" .. keys)
+      if match then
+         return match, Motion.categories.TEXT_OBJECT
+      end
+   end
    return nil, nil
 end
 
@@ -116,7 +158,7 @@ function Motion:parse(str)
 end
 
 function Motion:is_valid()
-   return self.motion ~= nil
+   return self.motion ~= nil and self.category ~= nil
 end
 
 return Motion
