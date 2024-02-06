@@ -9,7 +9,8 @@ local esc = vim.api.nvim_replace_termcodes("<Esc>", true, false, true)
 local key_sequence = ""
 local parse_timer = nil
 local parsed_commands = {}
-local concatted_keys = ""
+local concatted_cmds = ""
+local ns = nil
 
 local EXPECT = {
    CountOperator = 0,
@@ -26,12 +27,14 @@ function M:register_tip(keys, message, timeout)
 end
 
 function M:setup()
-   local ns = vim.api.nvim_create_namespace("ic0r.forget_me_not")
+   ns = vim.api.nvim_create_namespace("ic0r.forget_me_not")
    vim.api.nvim_set_hl(ns, "Normal", { fg = "lightred", })
    local float_border = vim.api.nvim_get_hl(0, { name = "DiagnosticOk", })
    -- P(float_border)
    vim.api.nvim_set_hl(ns, "FloatBorder", float_border)
    vim.api.nvim_set_hl(ns, "FloatTitle", { fg = "lightblue", })
+
+   key_sequence = ""
 
    local show_tip = function(msg)
       local buf = vim.api.nvim_create_buf(false, true)
@@ -58,39 +61,56 @@ function M:setup()
 
    vim.on_key(function(key)
       key_sequence = key_sequence .. key
-      parse_timer:start(1000, 0, function()
+      parse_timer:start(500, 0, function()
          local cmd = Command.new()
-         print("Parsing: " .. key_sequence)
-         key_sequence = cmd:parse(key_sequence)
+         repeat
+            key_sequence = cmd:parse(key_sequence)
+            if cmd:is_valid() then
+               table.insert(parsed_commands, cmd)
+               concatted_cmds = concatted_cmds .. tostring(cmd)
+            end
+         until not cmd:is_valid() or #key_sequence == 0
+         -- print("Parsing: " .. key_sequence)
+         -- key_sequence = cmd:parse(key_sequence)
          if cmd:is_valid() then
-            table.insert(parsed_commands, cmd)
-            concatted_keys = concatted_keys .. tostring(cmd)
-            print("Parsed command: " .. tostring(cmd))
+            --table.insert(parsed_commands, cmd)
+            --concatted_cmds = concatted_cmds .. tostring(cmd)
+            print("Parsed command: " .. concatted_cmds .. ", " .. table.getn(parsed_commands))
          else
-            print("Invalid command: " .. tostring(cmd))
             key_sequence = ""
+            concatted_cmds = ""
          end
+         -- else
+         --    print("Invalid command: " .. tostring(cmd))
+         --    key_sequence = ""
+         --    concatted_cmds = ""
+         --    parsed_commands = {}
+         -- end
+         for keys, msg in pairs(self.tips) do
+            if string.find(concatted_cmds, keys) then
+               vim.schedule(function()
+                  show_tip(msg)
+               end)
+            end
+         end
+         key_sequence = ""
+         parsed_commands = {}
+         concatted_cmds = ""
       end)
       if key == esc then
          print("Escape")
          key_sequence = ""
          parsed_commands = {}
-         concatted_keys = ""
-         return nil
+         concatted_cmds = ""
+         return
       end
 
-      for keys, msg in pairs(self.tips) do
-         if string.find(key_sequence, "^" .. keys) then
-            show_tip(msg)
-            key_sequence = ""
-            parsed_commands = {}
-            concatted_keys = ""
-         end
-      end
    end, ns)
 end
 
 print("Loaded forget_me_not")
-M:register_tip("yiw", "Exit insert mode", 2000)
+M:register_tip("yiw", "Yanked inside word", 2000)
+
+M:setup()
 
 return M
